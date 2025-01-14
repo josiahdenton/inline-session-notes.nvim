@@ -6,6 +6,9 @@ Create inline notes for your nvim session.
 - before diving straight into a problem, I like to quickly write up a plan / annotate the codebase
 - I use comments, but I don't want them to stay / show in a diff, they're short lived and not vital
 
+This is where `inline-session-notes` comes in! You can quickly annotate code with comments that
+will live as long as your neovim session remains open.
+
 > [!caution]
 > while you can use the plugin, it may not be bug free! file an issue if you find anything (or open a PR)
 
