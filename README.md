@@ -2,8 +2,18 @@
 
 Create inline notes for your nvim session.
 
+**Why?**
+- before diving straight into a problem, I like to quickly write up a plan / annotate the codebase
+- I use comments, but I don't want them to stay / show in a diff, they're short lived and not vital
+
 > [!caution]
 > while you can use the plugin, it may not be bug free! file an issue if you find anything (or open a PR)
+
+## What's Next?
+
+- [ ] open quick fix list with all note locations
+- [ ] documentation
+- [ ] more customization / options
 
 ## Install
 
