@@ -297,4 +297,13 @@ M.quickfix = function()
 	vim.cmd("copen")
 end
 
+M.clear = function()
+	local buffers = vim.api.nvim_list_bufs()
+	for _, bufnr in ipairs(buffers) do
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			vim.api.nvim_buf_clear_namespace(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), 0, -1)
+		end
+	end
+end
+
 return M
