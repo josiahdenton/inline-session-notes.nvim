@@ -255,4 +255,41 @@ M.edit = function()
 	end
 end
 
+-- TODO: enhance with getting the column correct? could save markid + col
+M.quickfix = function()
+	local buffers = vim.api.nvim_list_bufs()
+	local qfixlist = {}
+	for _, bufnr in ipairs(buffers) do
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			local marks = vim.api.nvim_buf_get_extmarks(
+				bufnr,
+				vim.api.nvim_create_namespace("inline-session-notes"),
+				{ 0, 0 },
+				{ -1, -1 },
+				{ details = true }
+			)
+			for _, mark in ipairs(marks) do
+				local row = mark[2]
+				local details = mark[4]
+				table.insert(qfixlist, {
+					bufnr = bufnr,
+					lnum = row + 1,
+					col = 1,
+					text = table.concat(
+						vim.iter(details.virt_lines)
+							:map(function(vline)
+								return text(vline)
+							end)
+							:totable(),
+						"\n"
+					),
+				})
+			end
+		end
+	end
+
+	vim.fn.setqflist(qfixlist)
+	vim.cmd("copen")
+end
+
 return M
