@@ -14,7 +14,6 @@ will live as long as your neovim session remains open.
 
 ## What's Next?
 
-- [ ] open quick fix list with all note locations
 - [ ] documentation
 - [ ] more customization / options
 
