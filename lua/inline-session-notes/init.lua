@@ -81,6 +81,9 @@ local open_float = function(bufnr, title)
 	return float_win
 end
 
+--- @type table<integer,integer> mid -> col
+local extmark_columns = {}
+
 --- @param bufnr integer which buffer to draw on
 --- @param line_nr integer where in the buffer to draw
 --- @param col_nr integer where in the buffer to draw
@@ -136,10 +139,12 @@ local draw_note = function(bufnr, line_nr, col_nr, note)
 			{ ui.bottom_right, ui.border_hl },
 		})
 	end
-	vim.api.nvim_buf_set_extmark(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), line_nr - 1, 0, {
-		virt_lines_above = true,
-		virt_lines = lines,
-	})
+	local mid =
+		vim.api.nvim_buf_set_extmark(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), line_nr - 1, 0, {
+			virt_lines_above = true,
+			virt_lines = lines,
+		})
+	extmark_columns[mid] = col_nr
 end
 
 --- @param action "add"|"edit"
@@ -255,7 +260,6 @@ M.edit = function()
 	end
 end
 
--- TODO: enhance with getting the column correct? could save markid + col
 M.quickfix = function()
 	local buffers = vim.api.nvim_list_bufs()
 	local qfixlist = {}
@@ -269,12 +273,13 @@ M.quickfix = function()
 				{ details = true }
 			)
 			for _, mark in ipairs(marks) do
+				local mid = mark[1]
 				local row = mark[2]
 				local details = mark[4]
 				table.insert(qfixlist, {
 					bufnr = bufnr,
 					lnum = row + 1,
-					col = 1,
+					col = extmark_columns[mid],
 					text = table.concat(
 						vim.iter(details.virt_lines)
 							:map(function(vline)
