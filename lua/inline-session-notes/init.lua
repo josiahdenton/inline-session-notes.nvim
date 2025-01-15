@@ -81,6 +81,9 @@ local open_float = function(bufnr, title)
 	return float_win
 end
 
+--- @type table<integer,integer> mid -> col
+local extmark_columns = {}
+
 --- @param bufnr integer which buffer to draw on
 --- @param line_nr integer where in the buffer to draw
 --- @param col_nr integer where in the buffer to draw
@@ -136,10 +139,12 @@ local draw_note = function(bufnr, line_nr, col_nr, note)
 			{ ui.bottom_right, ui.border_hl },
 		})
 	end
-	vim.api.nvim_buf_set_extmark(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), line_nr - 1, 0, {
-		virt_lines_above = true,
-		virt_lines = lines,
-	})
+	local mid =
+		vim.api.nvim_buf_set_extmark(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), line_nr - 1, 0, {
+			virt_lines_above = true,
+			virt_lines = lines,
+		})
+	extmark_columns[mid] = col_nr
 end
 
 --- @param action "add"|"edit"
@@ -252,6 +257,52 @@ M.edit = function()
 		use_note_buffer("edit", lines, mid, bufnr)
 	else
 		vim.notify("failed to get inline-note details", vim.log.levels.ERROR, {})
+	end
+end
+
+M.quickfix = function()
+	local buffers = vim.api.nvim_list_bufs()
+	local qfixlist = {}
+	for _, bufnr in ipairs(buffers) do
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			local marks = vim.api.nvim_buf_get_extmarks(
+				bufnr,
+				vim.api.nvim_create_namespace("inline-session-notes"),
+				{ 0, 0 },
+				{ -1, -1 },
+				{ details = true }
+			)
+			for _, mark in ipairs(marks) do
+				local mid = mark[1]
+				local row = mark[2]
+				local details = mark[4]
+				table.insert(qfixlist, {
+					bufnr = bufnr,
+					lnum = row + 1,
+					col = extmark_columns[mid],
+					text = table.concat(
+						vim.iter(details.virt_lines)
+							:map(function(vline)
+								return text(vline)
+							end)
+							:totable(),
+						"\n"
+					),
+				})
+			end
+		end
+	end
+
+	vim.fn.setqflist(qfixlist)
+	vim.cmd("copen")
+end
+
+M.clear = function()
+	local buffers = vim.api.nvim_list_bufs()
+	for _, bufnr in ipairs(buffers) do
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			vim.api.nvim_buf_clear_namespace(bufnr, vim.api.nvim_create_namespace("inline-session-notes"), 0, -1)
+		end
 	end
 end
 
